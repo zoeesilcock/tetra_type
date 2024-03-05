@@ -1,4 +1,6 @@
-[gd_scene format=3 uid="uid://cjut61nfnd8hn"]
+[gd_scene load_steps=2 format=3 uid="uid://cjut61nfnd8hn"]
+
+[ext_resource type="PackedScene" uid="uid://cnbfe8lu1srk2" path="res://tetra_board.tscn" id="1_51t4k"]
 
 [node name="UI" type="CanvasLayer"]
 
@@ -15,8 +17,7 @@ offset_bottom = 20.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="KeyboardPlaceholder" type="ColorRect" parent="HBoxContainer"]
-custom_minimum_size = Vector2(250, 250)
+[node name="TetraBoard" parent="HBoxContainer" instance=ExtResource("1_51t4k")]
 layout_mode = 2
 
 [node name="TextEdit" type="TextEdit" parent="HBoxContainer"]

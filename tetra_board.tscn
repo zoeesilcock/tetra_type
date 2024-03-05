@@ -1,0 +1,25 @@
+[gd_scene load_steps=3 format=3 uid="uid://cnbfe8lu1srk2"]
+
+[ext_resource type="Script" path="res://tetra_board.gd" id="1_ofd8y"]
+[ext_resource type="PackedScene" uid="uid://dqc7qdmp1ior8" path="res://tetra_key.tscn" id="2_3rdxm"]
+
+[node name="TetraBoard" type="Control" node_paths=PackedStringArray("grid")]
+custom_minimum_size = Vector2(250, 250)
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_ofd8y")
+grid = NodePath("GridContainer")
+key_scene = ExtResource("2_3rdxm")
+
+[node name="GridContainer" type="GridContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+columns = 5
