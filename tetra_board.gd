@@ -14,13 +14,29 @@ func _ready() -> void:
 
 	_set_cursor_position(Vector2(0, 0))
 
+func _input(event: InputEvent) -> void:
+	var motion : Vector2 = Vector2.ZERO
+
+	if event.is_action_pressed("ui_left"):
+		motion = Vector2.LEFT
+	if event.is_action_pressed("ui_right"):
+		motion = Vector2.RIGHT
+	if event.is_action_pressed("ui_up"):
+		motion = Vector2.UP
+	if event.is_action_pressed("ui_down"):
+		motion = Vector2.DOWN
+
+	if motion != Vector2.ZERO:
+		_set_cursor_position(current_position + motion)
+
 func _create_cursor() -> void:
 	cursor = cursor_scene.instantiate()
 	add_child(cursor)
 
 func _set_cursor_position(cursor_position : Vector2) -> void:
-	current_position = cursor_position
-	cursor.position = keys[current_position].position
+	if keys.has(cursor_position):
+		current_position = cursor_position
+		cursor.position = keys[current_position].position
 
 func _create_keys() -> void:
 	var row : int = -2
