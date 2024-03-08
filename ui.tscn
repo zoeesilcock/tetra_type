@@ -1,8 +1,11 @@
-[gd_scene load_steps=2 format=3 uid="uid://cjut61nfnd8hn"]
+[gd_scene load_steps=3 format=3 uid="uid://cjut61nfnd8hn"]
 
 [ext_resource type="PackedScene" uid="uid://cnbfe8lu1srk2" path="res://tetra_board.tscn" id="1_51t4k"]
+[ext_resource type="Script" path="res://ui.gd" id="1_mks2r"]
 
-[node name="UI" type="CanvasLayer"]
+[node name="UI" type="CanvasLayer" node_paths=PackedStringArray("text_input")]
+script = ExtResource("1_mks2r")
+text_input = NodePath("HBoxContainer/TextEdit")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="."]
 anchors_preset = 8

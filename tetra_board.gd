@@ -7,6 +7,7 @@ extends Control
 var cursor : Panel
 var keys : Dictionary
 var current_position : Vector2
+var viewport : Viewport
 
 const FIRST_LETTER = 65
 const LAST_LETTER = 90
@@ -19,6 +20,8 @@ const CLOCKWISE_DIRECTIONS = [
 ]
 
 func _ready() -> void:
+	viewport = get_viewport()
+
 	_create_keys()
 	_create_cursor()
 
@@ -37,7 +40,12 @@ func _input(event: InputEvent) -> void:
 		motion = Vector2.DOWN
 
 	if motion != Vector2.ZERO:
+		viewport.set_input_as_handled()
 		_set_cursor_position(current_position + motion)
+
+	if event.is_action_pressed("ui_accept"):
+		viewport.set_input_as_handled()
+		_trigger_current_key()
 
 func _create_cursor() -> void:
 	cursor = cursor_scene.instantiate()
@@ -47,6 +55,18 @@ func _set_cursor_position(cursor_position : Vector2) -> void:
 	if keys.has(cursor_position):
 		current_position = cursor_position
 		cursor.position = keys[current_position].position
+
+func _get_current_key() -> TetraKey:
+	return keys[current_position]
+
+func _trigger_current_key() -> void:
+	var current_key : TetraKey = _get_current_key()
+	var event : InputEventKey = InputEventKey.new()
+
+	event.pressed = true
+	event.unicode = current_key.keycode
+
+	Input.parse_input_event(event)
 
 func _create_keys() -> void:
 	var board_position : Vector2 = Vector2.ZERO
@@ -61,7 +81,7 @@ func _create_keys() -> void:
 				return
 
 			# Add the key.
-			_add_key(char(letter_code), board_position)
+			_add_key(letter_code, board_position)
 			letter_code += 1
 
 			# Calculate next position.
@@ -90,8 +110,8 @@ func _create_keys() -> void:
 			direction = 0
 			distance += 1
 
-func _add_key(letter : String, board_position : Vector2) -> void:
-	var key : TetraKey = _create_key(letter)
+func _add_key(letter_code : int, board_position : Vector2) -> void:
+	var key : TetraKey = _create_key(letter_code)
 	var key_size : Vector2 = key.custom_minimum_size
 	var key_position : Vector2 = (board_position * key_size) + key_size * 2
 
@@ -99,8 +119,8 @@ func _add_key(letter : String, board_position : Vector2) -> void:
 	key.position = key_position
 	keys[board_position] = key
 
-func _create_key(letter : String) -> TetraKey:
+func _create_key(letter_code : int) -> TetraKey:
 	var key : TetraKey = key_scene.instantiate()
-	key.label.text = letter
-
+	key.label.text = char(letter_code)
+	key.keycode = letter_code
 	return key
