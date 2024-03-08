@@ -65,11 +65,13 @@ func _trigger_current_key() -> void:
 	var event : InputEventKey = InputEventKey.new()
 
 	event.pressed = true
-	event.keycode = current_key.keycode
 	event.unicode = current_key.keycode
 
-	if current_key.keycode == KEY_SPACE:
-		event.keycode = KEY_NONE
+	# Backspace doesn't work without a keycode.
+	# Including a keycode for all characters risks
+	# triggering any action bound to that character.
+	if current_key.keycode == KEY_BACKSPACE:
+		event.keycode = current_key.keycode
 
 	Input.parse_input_event(event)
 
