@@ -21,3 +21,4 @@ grow_vertical = 2
 script = ExtResource("1_ofd8y")
 key_scene = ExtResource("2_3rdxm")
 cursor_scene = ExtResource("3_2ges7")
+reset_cursor_after = 400

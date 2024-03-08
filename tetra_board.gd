@@ -4,10 +4,14 @@ extends Control
 @export var key_scene : PackedScene
 @export var cursor_scene : PackedScene
 
+@export var reset_cursor_automatically : bool
+@export var reset_cursor_after : int
+
 var cursor : Panel
 var keys : Dictionary
 var current_position : Vector2
 var viewport : Viewport
+var last_input_time : int
 
 const LAYOUT = preload("res://layouts/english_alphabetical_layout.gd").ENGLISH_ALPHABETICAL_LAYOUT
 const FIRST_LETTER = 65
@@ -28,6 +32,12 @@ func _ready() -> void:
 
 	_set_cursor_position(Vector2(0, 0))
 
+func _process(_delta : float) -> void:
+	if (reset_cursor_automatically and
+		Time.get_ticks_msec() > last_input_time + reset_cursor_after and
+		current_position != Vector2.ZERO):
+		_set_cursor_position(Vector2.ZERO)
+
 func _input(event: InputEvent) -> void:
 	var motion : Vector2 = Vector2.ZERO
 
@@ -42,10 +52,12 @@ func _input(event: InputEvent) -> void:
 
 	if motion != Vector2.ZERO:
 		viewport.set_input_as_handled()
+		last_input_time = Time.get_ticks_msec()
 		_set_cursor_position(current_position + motion)
 
 	if event.is_action_pressed("ui_accept"):
 		viewport.set_input_as_handled()
+		last_input_time = Time.get_ticks_msec()
 		_trigger_current_key()
 
 func _create_cursor() -> void:
