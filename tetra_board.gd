@@ -68,6 +68,9 @@ func _trigger_current_key() -> void:
 	event.keycode = current_key.keycode
 	event.unicode = current_key.keycode
 
+	if current_key.keycode == KEY_SPACE:
+		event.keycode = KEY_NONE
+
 	Input.parse_input_event(event)
 
 func _create_keys() -> void:
