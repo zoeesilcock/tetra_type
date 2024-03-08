@@ -9,6 +9,7 @@ var keys : Dictionary
 var current_position : Vector2
 var viewport : Viewport
 
+const LAYOUT = preload("res://layouts/english_alphabetical_layout.gd").ENGLISH_ALPHABETICAL_LAYOUT
 const FIRST_LETTER = 65
 const LAST_LETTER = 90
 
@@ -64,25 +65,26 @@ func _trigger_current_key() -> void:
 	var event : InputEventKey = InputEventKey.new()
 
 	event.pressed = true
+	event.keycode = current_key.keycode
 	event.unicode = current_key.keycode
 
 	Input.parse_input_event(event)
 
 func _create_keys() -> void:
 	var board_position : Vector2 = Vector2.ZERO
-	var letter_code : int = FIRST_LETTER
+	var key_index : int = 0
 	var direction : int = 0
 	var distance : int = 0
 
-	while letter_code <= LAST_LETTER:
+	while key_index < len(LAYOUT):
 		for outer_index : int in range(distance + 1, 0, -1):
 			# Break out of the outermost loop early if we overshoot.
-			if letter_code > LAST_LETTER:
+			if key_index >= len(LAYOUT):
 				return
 
 			# Add the key.
-			_add_key(letter_code, board_position)
-			letter_code += 1
+			_add_key(LAYOUT[key_index], board_position)
+			key_index += 1
 
 			# Calculate next position.
 			board_position = Vector2.ZERO
@@ -110,17 +112,17 @@ func _create_keys() -> void:
 			direction = 0
 			distance += 1
 
-func _add_key(letter_code : int, board_position : Vector2) -> void:
-	var key : TetraKey = _create_key(letter_code)
+func _add_key(keycode : Key, board_position : Vector2) -> void:
+	var key : TetraKey = _create_key(keycode)
 	var key_size : Vector2 = key.custom_minimum_size
-	var key_position : Vector2 = (board_position * key_size) + key_size * 2
+	var key_position : Vector2 = (board_position * key_size) + key_size * 4
 
 	add_child(key)
 	key.position = key_position
 	keys[board_position] = key
 
-func _create_key(letter_code : int) -> TetraKey:
+func _create_key(keycode : Key) -> TetraKey:
 	var key : TetraKey = key_scene.instantiate()
-	key.label.text = char(letter_code)
-	key.keycode = letter_code
+	key.label.text = char(keycode)
+	key.keycode = keycode
 	return key
