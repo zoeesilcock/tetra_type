@@ -8,6 +8,16 @@ var cursor : Panel
 var keys : Dictionary
 var current_position : Vector2
 
+const FIRST_LETTER = 65
+const LAST_LETTER = 90
+
+const CLOCKWISE_DIRECTIONS = [
+	Vector2.UP,
+	Vector2.RIGHT,
+	Vector2.DOWN,
+	Vector2.LEFT,
+]
+
 func _ready() -> void:
 	_create_keys()
 	_create_cursor()
@@ -39,27 +49,55 @@ func _set_cursor_position(cursor_position : Vector2) -> void:
 		cursor.position = keys[current_position].position
 
 func _create_keys() -> void:
-	var row : int = -2
-	var col : int = -2
+	var board_position : Vector2 = Vector2.ZERO
+	var letter_code : int = FIRST_LETTER
+	var direction : int = 0
+	var distance : int = 0
 
-	for letter_code : int in range(65, 91):
-		var key : TetraKey = _create_key(char(letter_code))
-		var key_size : Vector2 = key.custom_minimum_size
+	while letter_code <= LAST_LETTER:
+		for outer_index : int in range(distance + 1, 0, -1):
+			# Break out of the outermost loop early if we overshoot.
+			if letter_code > LAST_LETTER:
+				return
 
-		# Hacky approach to get Z centered on the last row.
-		if (char(letter_code) == "Z"):
-			col += 2
+			# Add the key.
+			_add_key(char(letter_code), board_position)
+			letter_code += 1
 
-		add_child(key)
-		key.position = (Vector2(col, row) * key_size) + key_size * 2
+			# Calculate next position.
+			board_position = Vector2.ZERO
+			for inner_index : int in range(0, distance + 1):
+				# We start by moving the distance in the current direction.
+				var inner_direction : int = direction
 
-		var key_coordinate : Vector2 = Vector2(col, row)
-		keys[key_coordinate] = key
+				# But as the distance from the from the center increases,
+				# we have to include the next direction, more times
+				# for each step away from the center.
+				#
+				# Example: At 3 steps from center, facing up we do:
+				# * up up up
+				# * up up right
+				# * up right right
+				if inner_index > outer_index - 1:
+					inner_direction = (direction + 1) % len(CLOCKWISE_DIRECTIONS)
 
-		col += 1
-		if col > 2:
-			col = -2
-			row += 1
+				# Set the next position.
+				board_position += CLOCKWISE_DIRECTIONS[inner_direction]
+
+		# Go to next direction and increase distance if we've completed a rotation.
+		direction += 1
+		if direction == len(CLOCKWISE_DIRECTIONS):
+			direction = 0
+			distance += 1
+
+func _add_key(letter : String, board_position : Vector2) -> void:
+	var key : TetraKey = _create_key(letter)
+	var key_size : Vector2 = key.custom_minimum_size
+	var key_position : Vector2 = (board_position * key_size) + key_size * 2
+
+	add_child(key)
+	key.position = key_position
+	keys[board_position] = key
 
 func _create_key(letter : String) -> TetraKey:
 	var key : TetraKey = key_scene.instantiate()
