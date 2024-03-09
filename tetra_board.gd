@@ -9,7 +9,7 @@ extends Control
 
 var cursor : Panel
 var keys : Dictionary
-var current_position : Vector2
+var current_position : Vector2i
 var viewport : Viewport
 var last_input_time : int
 
@@ -18,10 +18,10 @@ const FIRST_LETTER = 65
 const LAST_LETTER = 90
 
 const CLOCKWISE_DIRECTIONS = [
-	Vector2.UP,
-	Vector2.RIGHT,
-	Vector2.DOWN,
-	Vector2.LEFT,
+	Vector2i.UP,
+	Vector2i.RIGHT,
+	Vector2i.DOWN,
+	Vector2i.LEFT,
 ]
 
 func _ready() -> void:
@@ -31,26 +31,27 @@ func _ready() -> void:
 	_create_cursor()
 
 	_set_cursor_position(Vector2(0, 0))
+	_set_cursor_position(Vector2i(0, 0))
 
 func _process(_delta : float) -> void:
 	if (reset_cursor_automatically and
 		Time.get_ticks_msec() > last_input_time + reset_cursor_after and
-		current_position != Vector2.ZERO):
-		_set_cursor_position(Vector2.ZERO)
+		current_position != Vector2i.ZERO):
+		_set_cursor_position(Vector2i.ZERO)
 
 func _input(event: InputEvent) -> void:
-	var motion : Vector2 = Vector2.ZERO
+	var motion : Vector2i = Vector2i.ZERO
 
 	if event.is_action_pressed("ui_left"):
-		motion = Vector2.LEFT
+		motion = Vector2i.LEFT
 	if event.is_action_pressed("ui_right"):
-		motion = Vector2.RIGHT
+		motion = Vector2i.RIGHT
 	if event.is_action_pressed("ui_up"):
-		motion = Vector2.UP
+		motion = Vector2i.UP
 	if event.is_action_pressed("ui_down"):
-		motion = Vector2.DOWN
+		motion = Vector2i.DOWN
 
-	if motion != Vector2.ZERO:
+	if motion != Vector2i.ZERO:
 		viewport.set_input_as_handled()
 		last_input_time = Time.get_ticks_msec()
 		_set_cursor_position(current_position + motion)
@@ -65,6 +66,7 @@ func _create_cursor() -> void:
 	add_child(cursor)
 
 func _set_cursor_position(cursor_position : Vector2) -> void:
+func _set_cursor_position(cursor_position : Vector2i) -> void:
 	if keys.has(cursor_position):
 		current_position = cursor_position
 		cursor.position = keys[current_position].position
@@ -88,7 +90,7 @@ func _trigger_current_key() -> void:
 	Input.parse_input_event(event)
 
 func _create_keys() -> void:
-	var board_position : Vector2 = Vector2.ZERO
+	var board_position : Vector2i = Vector2i.ZERO
 	var key_index : int = 0
 	var direction : int = 0
 	var distance : int = 0
@@ -104,7 +106,7 @@ func _create_keys() -> void:
 			key_index += 1
 
 			# Calculate next position.
-			board_position = Vector2.ZERO
+			board_position = Vector2i.ZERO
 			for inner_index : int in range(0, distance + 1):
 				# We start by moving the distance in the current direction.
 				var inner_direction : int = direction
@@ -129,10 +131,10 @@ func _create_keys() -> void:
 			direction = 0
 			distance += 1
 
-func _add_key(keycode : Key, board_position : Vector2) -> void:
+func _add_key(keycode : Key, board_position : Vector2i) -> void:
 	var key : TetraKey = _create_key(keycode)
 	var key_size : Vector2 = key.custom_minimum_size
-	var key_position : Vector2 = (board_position * key_size) + key_size * 4
+	var key_position : Vector2 = (Vector2(board_position) * key_size) + key_size * 4
 
 	add_child(key)
 	key.position = key_position
