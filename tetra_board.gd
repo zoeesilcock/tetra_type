@@ -4,6 +4,7 @@ extends Control
 @export var key_scene : PackedScene
 @export var cursor_scene : PackedScene
 
+@export var wrap_around_cursor : bool
 @export var reset_cursor_automatically : bool
 @export var reset_cursor_after : int
 
@@ -12,6 +13,8 @@ var keys : Dictionary
 var current_position : Vector2i
 var viewport : Viewport
 var last_input_time : int
+var row_extents : Dictionary
+var col_extents : Dictionary
 
 const LAYOUT = preload("res://layouts/english_alphabetical_layout.gd").ENGLISH_ALPHABETICAL_LAYOUT
 const FIRST_LETTER = 65
@@ -30,7 +33,6 @@ func _ready() -> void:
 	_create_keys()
 	_create_cursor()
 
-	_set_cursor_position(Vector2(0, 0))
 	_set_cursor_position(Vector2i(0, 0))
 
 func _process(_delta : float) -> void:
@@ -54,7 +56,7 @@ func _input(event: InputEvent) -> void:
 	if motion != Vector2i.ZERO:
 		viewport.set_input_as_handled()
 		last_input_time = Time.get_ticks_msec()
-		_set_cursor_position(current_position + motion)
+		_move_cursor(motion)
 
 	if event.is_action_pressed("ui_accept"):
 		viewport.set_input_as_handled()
@@ -65,7 +67,20 @@ func _create_cursor() -> void:
 	cursor = cursor_scene.instantiate()
 	add_child(cursor)
 
-func _set_cursor_position(cursor_position : Vector2) -> void:
+func _move_cursor(motion : Vector2i) -> void:
+	var next_position : Vector2i = current_position + motion
+
+	if wrap_around_cursor && !keys.has(next_position):
+		if motion.x != 0:
+			var extents : Extent = row_extents[current_position.y]
+			next_position.x = _offset_within_extent(current_position.x, motion.x, extents.min, extents.max)
+
+		if motion.y != 0:
+			var extents : Extent = col_extents[current_position.x]
+			next_position.y = _offset_within_extent(current_position.y, motion.y, extents.min, extents.max)
+
+	_set_cursor_position(next_position)
+
 func _set_cursor_position(cursor_position : Vector2i) -> void:
 	if keys.has(cursor_position):
 		current_position = cursor_position
@@ -95,6 +110,8 @@ func _create_keys() -> void:
 	var direction : int = 0
 	var distance : int = 0
 
+	_reset_extents()
+
 	while key_index < len(LAYOUT):
 		for outer_index : int in range(distance + 1, 0, -1):
 			# Break out of the outermost loop early if we overshoot.
@@ -103,6 +120,7 @@ func _create_keys() -> void:
 
 			# Add the key.
 			_add_key(LAYOUT[key_index], board_position)
+			_add_to_extents(board_position)
 			key_index += 1
 
 			# Calculate next position.
@@ -145,3 +163,27 @@ func _create_key(keycode : Key) -> TetraKey:
 	key.label.text = char(keycode)
 	key.keycode = keycode
 	return key
+
+func _reset_extents() -> void:
+	col_extents = {}
+	row_extents = {}
+
+func _add_to_extents(board_position : Vector2i) -> void:
+	if !col_extents.has(board_position.x):
+		col_extents[board_position.x] = Extent.new()
+	if !row_extents.has(board_position.y):
+		row_extents[board_position.y] = Extent.new()
+
+	if board_position.y < col_extents[board_position.x].min:
+		col_extents[board_position.x].min = board_position.y
+	if board_position.y > col_extents[board_position.x].max:
+		col_extents[board_position.x].max = board_position.y
+
+	if board_position.x < row_extents[board_position.y].min:
+		row_extents[board_position.y].min = board_position.x
+	if board_position.x > row_extents[board_position.y].max:
+		row_extents[board_position.y].max = board_position.x
+
+func _offset_within_extent(value : int, offset : int, min : int, max : int) -> int:
+	var range_length : int = max - min + 1
+	return (value - min + (offset % range_length) + range_length) % range_length + min
